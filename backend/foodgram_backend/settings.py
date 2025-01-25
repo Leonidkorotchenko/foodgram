@@ -24,7 +24,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'rest_framework',
     'djoser',
-    'cats.apps.CatsConfig',
+    "django_filters",
+    'api.apps.ApiConfig',
+    'users.apps.UsersConfig',
 ]
 
 MIDDLEWARE = [
@@ -37,7 +39,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'kittygram_backend.urls'
+ROOT_URLCONF = 'foodgram_backend.urls'
 
 TEMPLATES = [
     {
@@ -55,7 +57,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'kittygram_backend.wsgi.application'
+WSGI_APPLICATION = 'foodgram_backend.wsgi.application'
 
 
 DATABASES = {
@@ -117,6 +119,6 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    'PAGE_SIZE': 6,
 
 }
