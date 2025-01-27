@@ -28,8 +28,7 @@ class Recipe(models.Model):
     description = (models.TextField(
         verbose_name='Описание',
         blank=True,
-        null=True,)
-                   )
+        null=True,))
     ingredient = ()
     tag = models.ForeignKey(Tag,
                             on_delete=models.CASCADE,
