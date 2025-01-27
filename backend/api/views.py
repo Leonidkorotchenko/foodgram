@@ -3,14 +3,18 @@ from rest_framework import (
     viewsets, permissions, mixins, filters, status)
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.viewsets import ReadOnlyModelViewSet
 from users.models import User
+from .models import Tag, Recipe, Ingredient
+from .permissions import AuthorOrReadOnly
 from .serializers import (
-    UserSerializer
+    TagSerializer,
+    UserSerializer,
+    IngredientSerializer,
+    RecipeReadSerializer,
 )
 from .permissions import (
     IsSuperUserOrAdmin,
-    IsSuperUserOrAdminOrModeratorOrAuthor,
-    IsSuperUserOrAdminOrReadOnly,
 )
 
 
@@ -61,3 +65,22 @@ class UserViewSet(mixins.ListModelMixin,
             return Response(serializer.data, status=status.HTTP_200_OK)
         serializer = UserSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class TagViewSet(ReadOnlyModelViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (permissions.AllowAny,)
+
+
+class IngredientViewSet(ReadOnlyModelViewSet):
+    """Вьюсет ингридиентов."""
+    queryset = Ingredient.objects.all()
+    serializer_class = IngredientSerializer
+    permission_classes = (permissions.AllowAny,)
+
+
+class RecipeViewSet(viewsets.ModelViewSet):
+    """Вьюсет рецептов."""
+    queryset = Recipe.objects.all()
+    permission_classes = (AuthorOrReadOnly,)
+    serializer_class = RecipeReadSerializer
