@@ -17,7 +17,7 @@ from .models import (
     Ingredient,
     ShoppingCart,
     RecipeIngredient,
-    )
+)
 from .paginations import NumberPagination
 from .serializers import (
     AvatarSerializer,

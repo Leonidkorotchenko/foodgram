@@ -79,7 +79,6 @@ class FollowSerializer(UserSerializer):
         return serializer.data
 
 
-
 class ShortRecipeSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -127,7 +126,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IngredientInRecipe
         fields = '__all__'
-
 
 
 class IngredientInRecipeWriteSerializer(serializers.ModelSerializer):
@@ -283,7 +281,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients = self.initial_data.get('ingredients')
         if len(ingredients) <= 0:
             raise exceptions.ValidationError(
-                {'ingredients': 'Количество ингредиентов не может быть меньше {min_value}!'}
+                {'ingredients':
+                    'Количество ингредиентов не может быть меньше {min_value}!'}
             )
         ingredients_list = []
         for item in ingredients:
@@ -294,7 +293,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             ingredients_list.append(item['id'])
             if int(item['amount']) <= 0:
                 raise exceptions.ValidationError(
-                    {'amount': 'Количество ингредиентов не может быть меньше {min_value}!'}
+                    {'amount':
+                        'Количество ингредиентов не может быть меньше {min_value}!'}
                 )
         return value
 
