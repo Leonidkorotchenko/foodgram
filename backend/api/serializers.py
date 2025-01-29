@@ -13,7 +13,8 @@ from .models import (
     IngredientInRecipe,
     RecipeIngredient,
     Favourites
-    )
+)
+from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -281,8 +282,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients = self.initial_data.get('ingredients')
         if len(ingredients) <= 0:
             raise exceptions.ValidationError(
-                {'ingredients':
-                    'Количество ингредиентов не может быть меньше {min_value}!'}
+                {'ingredients': INGREDIENT_MIN_AMOUNT_ERROR}
             )
         ingredients_list = []
         for item in ingredients:
@@ -293,8 +293,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             ingredients_list.append(item['id'])
             if int(item['amount']) <= 0:
                 raise exceptions.ValidationError(
-                    {'amount':
-                        'Количество ингредиентов не может быть меньше {min_value}!'}
+                    {'amount': INGREDIENT_MIN_AMOUNT_ERROR}
                 )
         return value
 
