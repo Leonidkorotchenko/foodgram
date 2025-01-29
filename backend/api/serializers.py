@@ -6,7 +6,14 @@ from rest_framework import serializers, exceptions, status, fields, relations
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.validators import UniqueTogetherValidator
 from users.models import User, Follow
-from .models import Recipe, Tag, Ingredient, IngredientInRecipe, RecipeIngredient, Favourites
+from .models import (
+    Recipe,
+    Tag,
+    Ingredient,
+    IngredientInRecipe,
+    RecipeIngredient,
+    Favourites
+    )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -99,7 +106,6 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
-    """ Сериализатор для вывода количества ингредиентов в рецепте."""
 
     id = serializers.PrimaryKeyRelatedField(
         read_only=True,
@@ -171,7 +177,6 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
-    """Избранное."""
 
     class Meta:
         model = Favourites
@@ -191,7 +196,6 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
-    """ Сериализатор для создание рецептов."""
 
     tags = relations.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                             many=True)
@@ -276,7 +280,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return recipe
 
     def validate_ingredients(self, value):
-        """Проверяем ингредиенты в рецепте."""
         ingredients = self.initial_data.get('ingredients')
         if len(ingredients) <= 0:
             raise exceptions.ValidationError(
@@ -296,7 +299,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return value
 
     def validate_cooking_time(self, data):
-        """Проверяем время приготовления рецепта."""
         cooking_time = self.initial_data.get('cooking_time')
         if int(cooking_time) <= 0:
             raise serializers.ValidationError(
@@ -305,7 +307,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         return data
 
     def validate_tags(self, value):
-        """Проверяем на наличие уникального тега."""
         tags = value
         if not tags:
             raise exceptions.ValidationError(

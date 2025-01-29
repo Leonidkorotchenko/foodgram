@@ -19,7 +19,6 @@ from .models import (
     RecipeIngredient,
     )
 from .paginations import NumberPagination
-from .permissions import AuthorOrReadOnly
 from .serializers import (
     AvatarSerializer,
     UserSerializer,
