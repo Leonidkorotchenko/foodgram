@@ -1,12 +1,9 @@
 from django.core import validators
-from django.contrib.auth import get_user_model
+from users.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
-
-
-User = get_user_model()
 
 
 class TagIngredientRecipe(models.Model):
