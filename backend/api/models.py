@@ -129,7 +129,7 @@ class IngredientInRecipe(models.Model):
         validators=(
             validators.MinValueValidator(
                 1,
-                message= INGREDIENT_MIN_AMOUNT_ERROR
+                message=INGREDIENT_MIN_AMOUNT_ERROR,
             ),
         ),
     )
