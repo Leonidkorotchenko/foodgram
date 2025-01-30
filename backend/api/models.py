@@ -3,6 +3,8 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
+
 
 User = get_user_model()
 
@@ -127,8 +129,7 @@ class IngredientInRecipe(models.Model):
         validators=(
             validators.MinValueValidator(
                 1,
-                message=(
-                    'Количество ингредиентов не может быть меньше {min_value}!')
+                message= INGREDIENT_MIN_AMOUNT_ERROR
             ),
         ),
     )
