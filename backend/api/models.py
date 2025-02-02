@@ -1,8 +1,8 @@
 from django.core import validators
-from users.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
+from users.models import User
 from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
 
 
@@ -35,6 +35,7 @@ class Tag(models.Model):
 
     class Meta:
         verbose_name = "Тег"
+        verbose_name_plural = "Теги"
         ordering = ("name",)
 
     def __str__(self):
@@ -50,6 +51,7 @@ class Ingredient(TagIngredientRecipe):
 
     class Meta(TagIngredientRecipe.Meta):
         verbose_name = "Ингредиент"
+        verbose_name_plural = 'Ингредиенты'
         ordering = ("name",)
         constraints = [
             models.UniqueConstraint(fields=["name", "measurement_unit"],
@@ -65,23 +67,27 @@ class Ingredient(TagIngredientRecipe):
 class Recipe(models.Model):
     author = models.ForeignKey(
         User, related_name='food',
+        verbose_name='автор',
         on_delete=models.CASCADE)
-    name = models.CharField(max_length=64)
-    image = models.ImageField(upload_to='api/image/',
-                              null=True, default=None)
+    name = models.CharField(
+        verbose_name='название рецепта',
+        max_length=64)
+    image = models.ImageField(
+        verbose_name='изображение',
+        upload_to='api/image/',)
     text = models.TextField(
         verbose_name="Описание рецепта",
     )
     ingredients = models.ManyToManyField(
         Ingredient,
-        through="RecipeIngredient",
-        verbose_name="Ингредиенты",
         related_name="recipes",
+        verbose_name="ингредиенты",
+        through="RecipeIngredient",
     )
     tags = models.ManyToManyField(
         Tag,
-        verbose_name="Теги",
-        related_name="recipes",
+        related_name="tags",
+        verbose_name="теги",
         blank=True,
     )
     cooking_time = models.PositiveIntegerField(
@@ -98,6 +104,7 @@ class Recipe(models.Model):
 
     class Meta:
         verbose_name = "Рецепт"
+        verbose_name_plural = "Рецепты"
         ordering = ("-pub_date",)
 
     def __str__(self):
@@ -108,16 +115,16 @@ class IngredientInRecipe(models.Model):
 
     recipe = models.ForeignKey(
         Recipe,
+        related_name='recipe_list',
         verbose_name='Рецепт',
         on_delete=models.CASCADE,
-        related_name='ingredient_list'
     )
 
     ingredient = models.ForeignKey(
         Ingredient,
+        related_name='ingredient_list',
         verbose_name='Ингредиент',
         on_delete=models.CASCADE,
-        related_name='ingredient_list',
     )
 
     amount = models.PositiveSmallIntegerField(
@@ -153,7 +160,7 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name="Recipe_ingredient",
+        related_name="Recipeingredient",
         verbose_name="Рецепт",
     )
     ingredient = models.ForeignKey(

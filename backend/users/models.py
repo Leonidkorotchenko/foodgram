@@ -6,7 +6,7 @@ from .enum import UserRoles
 
 
 class User(AbstractUser):
-    """Модель пользователя."""
+
     avatar = models.ImageField(
         upload_to='avatars/',
         null=True,
@@ -18,7 +18,6 @@ class User(AbstractUser):
         max_length=150,
         verbose_name='Имя пользователя',
         unique=True,
-        db_index=True,
         validators=[RegexValidator(
             regex=r'^[\w.@+-]+$',
             message='В имени пользователя недопустимый символ'
@@ -45,6 +44,7 @@ class User(AbstractUser):
 
     password = models.CharField(
         max_length=150,
+        verbose_name='password',
         blank=False,
         null=False
     )
@@ -75,7 +75,6 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
-    """Модель подписчика."""
 
     user = models.ForeignKey(
         User,

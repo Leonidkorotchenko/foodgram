@@ -115,7 +115,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет рецептов."""
     queryset = Recipe.objects.all()
     permission_classes = (AuthorOrReadOnly,)
     serializer_class = RecipeReadSerializer
@@ -126,9 +125,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     pagination_class = NumberPagination
 
     def get_queryset(self):
-        """
-        Переопределяем get_queryset, чтобы корректно фильтровать рецепты.
-        """
         queryset = super().get_queryset()
         user = self.request.user
 
