@@ -1,5 +1,3 @@
-version: '3'
-
 volumes:
   pg_data:
   static:
@@ -35,4 +33,4 @@ services:
     volumes:
       - static:/staticfiles/
     ports:
-      - 9000:80
+      - 9090:80
