@@ -4,12 +4,11 @@ from datetime import datetime as dt
 def render_shopping_list(ingredients, recipes):
     # Проверка на корректность данных `ingredients`
     for ingredient in ingredients:
-        if not all(
-            key in ingredient for key in ['ingredient__name',
-                                          'total_amount',
-                                          'ingredient__measurement_unit'
-                                          ]
-            ):
+        if not all(key in ingredient for key in ['ingredient__name',
+                                                 'total_amount',
+                                                 'ingredient__measurement_unit'
+                                                 ]
+                   ):
             raise ValueError("Некорректный формат данных в ingredients")
 
     # Проверка на корректность данных `recipes`
@@ -31,11 +30,10 @@ def render_shopping_list(ingredients, recipes):
 
     # Обработка пустого списка рецептов
     recipes_section = (
-        '\n'.join([
-            f'{index}. {recipe.name}' for index, recipe in enumerate(
-                recipes, 1
-                )
-        ]) if recipes else "Нет рецептов"
+        '\n'.join([f'{index}. {recipe.name}' for index, recipe in enumerate(
+            recipes, 1
+            )
+                   ]) if recipes else "Нет рецептов"
     )
 
     # Финальное объединение текста
