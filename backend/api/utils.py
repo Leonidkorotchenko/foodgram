@@ -32,10 +32,8 @@ def render_shopping_list(ingredients, recipes):
     recipes_section = (
         '\n'.join([f'{index}. {recipe.name}' for index, recipe in enumerate(
             recipes,
-            1
-                                                                            )
-                   ]) if recipes else "Нет рецептов"
-                       )
+            1)
+                   ]) if recipes else "Нет рецептов")
 
     # Финальное объединение текста
     return '\n'.join([
