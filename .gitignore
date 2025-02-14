@@ -6,6 +6,7 @@ infra/frontend/build
 __pycache__/
 *.py[cod]
 *$py.class
+Новая папка/
 
 # C extensions
 *.so

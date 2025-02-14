@@ -2,7 +2,7 @@ import base64
 
 from django.db import models, transaction
 from django.core.files.base import ContentFile
-from rest_framework import serializers, exceptions, status, fields, relations
+from rest_framework import serializers, exceptions, status, relations
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.validators import UniqueTogetherValidator
 from users.models import User, Follow
@@ -17,14 +17,6 @@ from .models import (
 from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role'
-        )
-
-
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
@@ -34,6 +26,39 @@ class Base64ImageField(serializers.ImageField):
             data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
 
         return super().to_internal_value(data)
+
+
+class UserSerializer(serializers.ModelSerializer):
+
+    is_subscribed = serializers.SerializerMethodField(read_only=True)
+    avatar = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'username',
+                  'first_name', 'last_name', 'email',
+                  'is_subscribed', 'avatar',)
+
+    def get_is_subscribed(self, author):
+        request = self.context.get('request')
+        return (request and request.user.is_authenticated
+                and request.user.follower.filter(author=author).exists())
+
+    def create(self, validated_data: dict) -> User:
+        try:
+            user = User(
+                email=validated_data["email"],
+                username=validated_data["username"],
+                first_name=validated_data["first_name"],
+                last_name=validated_data["last_name"],
+            )
+            user.set_password(validated_data["password"])
+            user.save()
+            return user
+        except KeyError as e:
+            raise ValueError(f"Missing required field: {e}")
+        except Exception as e:
+            raise ValueError(f"An error occurred while creating the user: {e}")
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -146,8 +171,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
                                                required=True,
                                                source='ingredient_list')
     image = Base64ImageField()
-    is_favorited = fields.SerializerMethodField(read_only=True)
-    is_in_shopping_cart = fields.SerializerMethodField(read_only=True)
+    is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
@@ -165,14 +190,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         )
 
     def get_is_favorited(self, obj):
-        request = self.context.get('request')
-        return (request and request.user.is_authenticated
-                and request.user.favourites.filter(recipe=obj).exists())
+        return obj.is_favored_by(self.context['request'].user)
 
     def get_is_in_shopping_cart(self, obj):
-        request = self.context.get('request')
-        return (request and request.user.is_authenticated
-                and request.user.shopping_list.filter(recipe=obj).exists())
+        user = self.context['request'].user
+        return (
+            user.is_authenticated and
+            user.shopping_list.filter(recipe=obj).exists()
+        )
 
 
 class FavoriteSerializer(serializers.ModelSerializer):

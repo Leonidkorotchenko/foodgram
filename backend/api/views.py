@@ -131,11 +131,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         is_in_shopping_cart = self.request.query_params.get(
             'is_in_shopping_cart')
         if is_in_shopping_cart and user.is_authenticated:
-            return queryset
+            return queryset.filter(shopping_cart__user=user)
         is_favorited = self.request.query_params.get(
             'is_favorited')
         if is_favorited and not user.is_anonymous:
-            return queryset
+            return queryset.filter(favorites__user=user)
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method in ('POST', 'PUT', 'PATCH'):
@@ -169,7 +170,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
 
     @action(
-        methods=['post', 'delete'],
+        methods=['POST', 'DELETE'],
         detail=True,
         permission_classes=[IsAuthenticated]
     )
@@ -198,7 +199,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['GET'])
     def download_shopping_cart(self, request):
         user = request.user
         shopping_cart = ShoppingCart.objects.filter(user=user)
@@ -219,7 +220,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=('get', ),
+        methods=['GET'],
         url_path='get-link',
         url_name='get-link',
         permission_classes=[permissions.IsAuthenticatedOrReadOnly]

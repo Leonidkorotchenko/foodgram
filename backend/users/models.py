@@ -2,8 +2,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 
-from .enum import UserRoles
-
 
 class User(AbstractUser):
 
@@ -49,29 +47,16 @@ class User(AbstractUser):
         null=False
     )
 
-    role = models.CharField(
-        max_length=20,
-        verbose_name='роль',
-        choices=UserRoles.choices(),
-        default=UserRoles.user.name
-    )
+    REQUIRED_FIELDS = ("username", "first_name", "last_name")
+    USERNAME_FIELD = "email"
 
     class Meta:
-        verbose_name = 'Пользователь'
-        verbose_name_plural = 'Пользователи'
-        ordering = ('username',)
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+        ordering = ("username",)
 
-    @property
-    def is_admin(self):
-        return self.role == UserRoles.admin.name
-
-    @property
-    def is_moderator(self):
-        return self.role == UserRoles.moderator.name
-
-    @property
-    def is_user(self):
-        return self.role == UserRoles.user.name
+    def __str__(self):
+        return self.username
 
 
 class Follow(models.Model):
