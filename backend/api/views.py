@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
-from django.db.models import Sum
+from django.db import models
+from django.db.models import Sum, Exists, OuterRef
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from django.http import FileResponse, JsonResponse
@@ -60,7 +61,6 @@ class UserViewSet(UserViewSet):
                                                 output_field=models
                                                 .BooleanField()))
         return queryset
-        
 
     def get_permissions(self):
         if self.action == "me":
@@ -206,7 +206,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             ShoppingCart.objects.create(user=user, recipe=recipe)
-            return Response(ShortRecipeSerializer(recipe).data, status=status.HTTP_201_CREATED)
+            return Response(ShortRecipeSerializer(recipe).data,
+                            status=status.HTTP_201_CREATED)
         ShoppingCart.objects.filter(user=user, recipe=recipe).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -11,7 +11,6 @@ from .models import (
     Tag,
     Ingredient,
     IngredientInRecipe,
-    RecipeIngredient,
     Favourites
 )
 from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
@@ -25,9 +24,11 @@ class Base64ImageField(serializers.ImageField):
             try:
                 format, imgstr = data.split(";base64,")
                 ext = format.split("/")[-1]
-                data = ContentFile(base64.b64decode(imgstr), name=f"temp.{ext}")
+                data = ContentFile(base64.b64decode(imgstr),
+                                   name=f"temp.{ext}")
             except Exception:
-                raise serializers.ValidationError("Некорректный формат изображения.")
+                raise serializers.ValidationError(
+                    "Некорректный формат изображения.")
         return super().to_internal_value(data)
 
 
@@ -55,7 +56,6 @@ class UserSerializer(serializers.ModelSerializer):
         """Создает нового пользователя."""
         user = User.objects.create_user(**validated_data)
         return user
-
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -219,9 +219,11 @@ class FavoriteSerializer(serializers.ModelSerializer):
 class RecipeWriteSerializer(serializers.ModelSerializer):
     """Сериализатор для создания и обновления рецептов."""
 
-    tags = relations.PrimaryKeyRelatedField(queryset=Tag.objects.all(), many=True)
+    tags = relations.PrimaryKeyRelatedField(queryset=Tag.objects.all(),
+                                            many=True)
     author = UserSerializer(read_only=True)
-    ingredients = serializers.ListField(child=serializers.DictField(), write_only=True)
+    ingredients = serializers.ListField(child=serializers.DictField(),
+                                        write_only=True)
     image = Base64ImageField(max_length=None, use_url=True)
 
     class Meta:
@@ -254,11 +256,13 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def validate_ingredients(self, ingredients):
         """Валидация ингредиентов."""
         if not ingredients:
-            raise serializers.ValidationError("Добавьте хотя бы один ингредиент.")
+            raise serializers.ValidationError(
+                "Добавьте хотя бы один ингредиент.")
         seen = set()
         for ingredient in ingredients:
             if ingredient["id"] in seen:
-                raise serializers.ValidationError("Ингредиенты должны быть уникальными.")
+                raise serializers.ValidationError(
+                    "Ингредиенты должны быть уникальными.")
             if int(ingredient["amount"]) <= 0:
                 raise serializers.ValidationError(INGREDIENT_MIN_AMOUNT_ERROR)
             seen.add(ingredient["id"])
