@@ -175,7 +175,6 @@ class RecipeIngredient(models.Model):
             MinValueValidator(1),
             MaxValueValidator(32000)
         ],
-        help_text="Количество ингредиента в рецепте от 1 до 32000.",
     )
 
 
