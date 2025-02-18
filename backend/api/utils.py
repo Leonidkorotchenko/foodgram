@@ -15,6 +15,6 @@ def render_shopping_list(ingredients, recipes):
         "Ингредиенты:",
         ingredients_section,
         "\nРецепты:",
-        '\n'.join([f'- {recipe.name}' for recipe in recipes]) 
+        '\n'.join([f'- {recipe.name}' for recipe in recipes])
         if recipes else "Нет рецептов"
     ])

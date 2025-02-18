@@ -302,9 +302,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             .order_by('ingredient__name')
         )
 
-        text = '\n'.join([
-            f"{item['ingredient__name']} 
-            ({item['ingredient__measurement_unit']}) - {item['total']}"
+        text = '\n'.join([(
+            f"{item['ingredient__name']} "
+            f"({item['ingredient__measurement_unit']}) - {item['total']}")
             for item in ingredients
         ])
 
