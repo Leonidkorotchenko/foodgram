@@ -1,7 +1,6 @@
-import django_filters
 from django_filters.rest_framework import FilterSet, filters
 
-from .models import Ingredient, Recipe, Tag, User
+from .models import Recipe, Tag
 
 
 class RecipeFilter(FilterSet):
@@ -26,4 +25,3 @@ class RecipeFilter(FilterSet):
         if value and self.request.user.is_authenticated:
             return queryset.filter(in_shopping_carts__user=self.request.user)
         return queryset
-

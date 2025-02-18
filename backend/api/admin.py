@@ -46,7 +46,7 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    fields=['name', 'slug']
+    fields = ['name', 'slug']
     list_display = ("name", "slug")
     list_filter = ("name",)
     search_fields = ("name",)

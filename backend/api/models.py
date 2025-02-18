@@ -66,8 +66,8 @@ class Ingredient(TagIngredientRecipe):
 
 class Recipe(models.Model):
     author = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
+        User,
+        on_delete=models.CASCADE,
         related_name="recipes"
     )
     name = models.CharField(
@@ -114,7 +114,7 @@ class Recipe(models.Model):
 
     def in_shopping_cart(self, user):
         return self.in_shopping_carts.filter(user=user).exists()
-    
+
     def is_favorited(self, user):
         return self.in_favorites.filter(user=user).exists()
 

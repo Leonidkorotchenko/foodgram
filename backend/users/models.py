@@ -83,7 +83,7 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'Пользователь {self.user} подписан на {self.author}'
-    
+
     def delete(self, *args, **kwargs):
         if not Follow.objects.filter(pk=self.pk).exists():
             raise ValidationError('Подписка не существует')

@@ -1,11 +1,9 @@
 import base64
 
-from django.db import models, transaction
-from django.core.exceptions import ValidationError
+from django.db import transaction
 from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
 from django.core.validators import MaxValueValidator, MinValueValidator
-from rest_framework import serializers, exceptions, status, relations
+from rest_framework import serializers, exceptions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.validators import UniqueTogetherValidator
 from users.models import User, Follow
@@ -16,7 +14,6 @@ from .models import (
     IngredientInRecipe,
     Favorites
 )
-from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
 
 
 class Base64ImageField(serializers.ImageField):
@@ -215,11 +212,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context.get('request').user
-        return user.is_authenticated and obj.in_favorites.filter(user=user).exists()
-    
+        return user.is_authenticated and obj.in_favorites.filter(
+            user=user).exists()
+
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
-        return user.is_authenticated and obj.in_shopping_carts.filter(user=user).exists()
+        return user.is_authenticated and obj.in_shopping_carts.filter(
+            user=user).exists()
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -288,7 +287,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Добавьте хотя бы один ингредиент"
             )
-        
+
         ingredients = []
         for item in value:
             ingredient_id = item['id']
@@ -297,25 +296,24 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                     "Ингредиенты должны быть уникальными"
                 )
             ingredients.append(ingredient_id)
-            
+
             if item['amount'] < 1:
                 raise serializers.ValidationError(
                     "Количество должно быть не менее 1"
                 )
         return value
-    
+
     def validate(self, data):
-    # Добавить общую валидацию для рецептов
         if 'ingredients' not in data:
             raise serializers.ValidationError(
                 {"ingredients": "Требуется хотя бы один ингредиент"}
             )
-        
+
         if 'tags' not in data or len(data['tags']) == 0:
             raise serializers.ValidationError(
                 {"tags": "Требуется хотя бы один тег"}
             )
-        
+
         return data
 
     @transaction.atomic
@@ -328,18 +326,18 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 **validated_data
             )
             recipe.tags.set(tags)
-        
+
             # Создание объектов IngredientInRecipe с проверкой
             ingredient_objects = []
             for ingredient_data in ingredients:
                 ingredient = ingredient_data['id']
                 amount = ingredient_data['amount']
-            
+
                 if amount < 1:
                     raise serializers.ValidationError(
                         {"amount": "Количество должно быть не менее 1"}
                     )
-                
+
                 ingredient_objects.append(
                     IngredientInRecipe(
                         recipe=recipe,
@@ -347,10 +345,10 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                         amount=amount
                     )
                 )
-            
+
             IngredientInRecipe.objects.bulk_create(ingredient_objects)
             return recipe
-        
+
         except Exception as e:
             raise serializers.ValidationError(
                 {"detail": str(e)}
@@ -363,8 +361,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         for tag in value:
             if tag in tags:
                 raise serializers.ValidationError(
-                    "Теги должны быть уникальными."
-                    )
+                    "Теги должны быть уникальными.")
             tags.add(tag)
         return value
 
@@ -387,7 +384,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.text = validated_data.get('text', instance.text)
         instance.cooking_time = validated_data.get(
-            'cooking_time', 
+            'cooking_time',
             instance.cooking_time
         )
 
@@ -400,20 +397,20 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         if 'ingredients' in validated_data:
             instance.ingredients.clear()
             self.add_ingredients(validated_data['ingredients'], instance)
-    
+
         instance.save()
         return instance
-    
+
     def update_ingredients(self, recipe, ingredients_data):
         """Обновление ингредиентов с сохранением существующих"""
         current_ingredients = {
-            str(item.ingredient.id): item 
+            str(item.ingredient.id): item
             for item in recipe.ingredient_list.all()
         }
-    
+
     # Создаем временный список для новых ингредиентов
         new_ingredients = []
-    
+
         for ingredient_data in ingredients_data:
             ingredient_id = str(ingredient_data['id'].id)
             if ingredient_id in current_ingredients:
@@ -430,13 +427,14 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                         amount=ingredient_data['amount']
                     )
                 )
-    
+
         # Удаляем отсутствующие в новом списке
         to_delete_ids = set(current_ingredients.keys()) - {
             str(ing['id'].id) for ing in ingredients_data
         }
-        recipe.ingredient_list.filter(ingredient__id__in=to_delete_ids).delete()
-    
+        recipe.ingredient_list.filter(
+            ingredient__id__in=to_delete_ids).delete()
+
         # Добавляем новые ингредиенты
         if new_ingredients:
             IngredientInRecipe.objects.bulk_create(new_ingredients)

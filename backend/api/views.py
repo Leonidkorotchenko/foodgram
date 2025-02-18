@@ -3,10 +3,13 @@ from django.db import models
 from django.db.models import Sum, Exists, OuterRef, Prefetch
 from django.shortcuts import get_object_or_404, HttpResponse
 from djoser.views import UserViewSet
-from django.http import FileResponse, JsonResponse
-from rest_framework import viewsets, permissions, status, exceptions, serializers
+from django.http import JsonResponse
+from rest_framework import (viewsets,
+                            permissions,
+                            status,
+                            exceptions,
+                            serializers)
 from rest_framework.response import Response
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
@@ -33,7 +36,6 @@ from .serializers import (
     ShortRecipeSerializer,
 )
 from .permissions import AuthorOrReadOnly
-from .utils import render_shopping_list
 
 
 class UserViewSet(UserViewSet):
@@ -86,14 +88,14 @@ class UserViewSet(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
-    methods=["POST", "DELETE"],
-    permission_classes=[IsAuthenticated],
-    detail=True,
+        methods=["POST", "DELETE"],
+        permission_classes=[IsAuthenticated],
+        detail=True,
     )
     def subscribe(self, request, id):
         user = request.user
         author = get_object_or_404(User, id=id)
-  
+
         if request.method == "POST":
             if user == author:
                 return Response(
@@ -130,9 +132,7 @@ class UserViewSet(UserViewSet):
             is_subscribed=Exists(
                 Follow.objects.filter(
                     user=request.user,
-                    author=OuterRef('pk')
-                    ))
-            ).first()
+                    author=OuterRef('pk')))).first()
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
@@ -140,7 +140,7 @@ class UserViewSet(UserViewSet):
         methods=["GET"],
         detail=False,
         permission_classes=[IsAuthenticated],
-    )    
+    )
     def subscriptions(self, request):
         queryset = User.objects.filter(
             following__user=request.user
@@ -150,13 +150,13 @@ class UserViewSet(UserViewSet):
                 queryset=Recipe.objects.order_by('-pub_date')
             )
         )
-        
+
         limit = request.query_params.get('limit')
         if limit and limit.isdigit():
             limit = int(limit)
             for user in queryset:
                 user.recipes.set(user.recipes.all()[:limit])
-        
+
         page = self.paginate_queryset(queryset)
         serializer = FollowSerializer(
             page,
@@ -178,7 +178,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
     pagination_class = None
-    
+
     def get_queryset(self):
         queryset = super().get_queryset()
         name = self.request.query_params.get("name")
@@ -201,14 +201,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if params.get('is_favorited') == '1' and user.is_authenticated:
             queryset = queryset.filter(in_favorites__user=user)
-        
+
         if params.get('is_in_shopping_cart') == '1' and user.is_authenticated:
             queryset = queryset.filter(in_shopping_carts__user=user)
-        
+
         tags = params.getlist('tags')
         if tags:
             queryset = queryset.filter(tags__slug__in=tags).distinct()
-            
+
         author_id = self.request.query_params.get('author')
         if author_id:
             queryset = queryset.filter(author__id=int(author_id))
@@ -220,7 +220,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return RecipeWriteSerializer
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
-    
+
     def create(self, request, *args, **kwargs):
         try:
             return super().create(request, *args, **kwargs)
@@ -229,7 +229,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 e.detail,
                 status=status.HTTP_400_BAD_REQUEST
             )
-        except Exception as e:
+        except Exception:
             return Response(
                 {"detail": "Ошибка при создании рецепта"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -261,9 +261,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             )
 
     @action(
-    methods=['POST', 'DELETE'],
-    detail=True,
-    permission_classes=[IsAuthenticated]
+        methods=['POST', 'DELETE'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
     )
     def shopping_cart(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
@@ -288,7 +288,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
             cart_item.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
+    @action(detail=False,
+            methods=['GET'],
+            permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
         user = request.user
 
@@ -301,12 +303,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
 
         text = '\n'.join([
-            f"{item['ingredient__name']} ({item['ingredient__measurement_unit']}) - {item['total']}"
+            f"{item['ingredient__name']} 
+            ({item['ingredient__measurement_unit']}) - {item['total']}"
             for item in ingredients
         ])
 
         response = HttpResponse(text, content_type='text/plain')
-        response['Content-Disposition'] = 'attachment; filename="shopping_list.txt"'
+        response['Content-Disposition'] = (f'attachment; '
+                                           f'filename="shopping_list.txt"')
         return response
 
     @action(
