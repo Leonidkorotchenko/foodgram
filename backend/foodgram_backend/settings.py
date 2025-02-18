@@ -67,7 +67,7 @@ DATABASES = {
         'USER': os.getenv('POSTGRES_USER', 'django'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', 5432)
+        'PORT': os.getenv('DB_PORT', 5432),        
     }
 }
 AUTH_USER_MODEL = 'users.User'
@@ -87,6 +87,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+DJOSER = {
+    "SERIALIZERS": {
+        "user": "api.serializers.UserSerializer",
+        "current_user": "api.serializers.UserSerializer",
+    },
+}
 
 LANGUAGE_CODE = 'en-us'
 
@@ -120,3 +127,6 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 6,
 
 }
+
+PATH_TO_INGREDIENTS = BASE_DIR / 'data/ingredients.json'
+PATH_TO_TAGS = BASE_DIR / 'data/tags.json'

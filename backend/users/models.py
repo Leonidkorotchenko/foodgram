@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
 
@@ -53,14 +54,12 @@ class User(AbstractUser):
 
 
 class Follow(models.Model):
-
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='follower',
         verbose_name='Подписчик',
     )
-
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -84,3 +83,8 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'Пользователь {self.user} подписан на {self.author}'
+    
+    def delete(self, *args, **kwargs):
+        if not Follow.objects.filter(pk=self.pk).exists():
+            raise ValidationError('Подписка не существует')
+        super().delete(*args, **kwargs)

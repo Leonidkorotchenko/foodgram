@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import (Favourites, Ingredient, Recipe, IngredientInRecipe,
+from .models import (Favorites, Ingredient, Recipe, IngredientInRecipe,
                      ShoppingCart, Tag)
 
 
@@ -23,7 +23,7 @@ class RecipeAdmin(admin.ModelAdmin):
     @admin.display(description='Количество в избранных')
     def favorite_count(self, obj):
         """Получаем количество избранных."""
-        return obj.in_favourites.count()
+        return obj.in_favorites.count()
 
     @admin.display(description='Теги')
     @mark_safe
@@ -46,14 +46,15 @@ class RecipeIngredientAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
+    fields=['name', 'slug']
     list_display = ("name", "slug")
     list_filter = ("name",)
     search_fields = ("name",)
     empty_value_display = "-пусто-"
 
 
-@admin.register(Favourites)
-class FavouritesAdmin(admin.ModelAdmin):
+@admin.register(Favorites)
+class FavoritesAdmin(admin.ModelAdmin):
     list_display = ("user", "recipe")
 
 
