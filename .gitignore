@@ -6,7 +6,6 @@ infra/frontend/build
 __pycache__/
 *.py[cod]
 *$py.class
-Новая папка/
 
 # C extensions
 *.so
@@ -141,3 +140,4 @@ dmypy.json
 
 static/
 media/
+README.md
