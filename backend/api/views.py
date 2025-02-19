@@ -104,13 +104,13 @@ class UserViewSet(UserViewSet):
             )
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            
+
             author_serializer = FollowSerializer(
-                author, 
+                author,
                 context={"request": request}
             )
             return Response(
-                author_serializer.data, 
+                author_serializer.data,
                 status=status.HTTP_201_CREATED
             )
 

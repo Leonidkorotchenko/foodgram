@@ -7,8 +7,8 @@ from .models import User, Follow
 
 @admin.register(User)
 class AdminUser(UserAdmin):
-    list_display = ("username", "email", "first_name", "last_name", 
-                   "subscribers_count", "recipes_count")  # Добавляем новые поля
+    list_display = ("username", "email", "first_name", "last_name",
+                    "subscribers_count", "recipes_count")
     list_filter = ("username", "email", "first_name", "last_name")
     search_fields = ("username", "email", "first_name", "last_name")
 

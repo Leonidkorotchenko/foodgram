@@ -6,7 +6,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers, exceptions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.validators import UniqueTogetherValidator
-from rest_framework.response import Response
 from users.models import User, Follow
 from .models import (
     Recipe,
@@ -311,7 +310,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 "Ингредиенты должны быть уникальными"
             )
-            
+
         for item in value:
             if item['amount'] < 1:
                 raise serializers.ValidationError(
