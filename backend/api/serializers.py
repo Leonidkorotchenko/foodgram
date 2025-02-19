@@ -12,7 +12,8 @@ from .models import (
     Tag,
     Ingredient,
     IngredientInRecipe,
-    Favorites
+    Favorites,
+    ShoppingCart
 )
 
 
@@ -66,6 +67,19 @@ class UserSerializer(serializers.ModelSerializer):
         """Создает нового пользователя."""
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShoppingCart
+        fields = ("user", "recipe")
+        validators = [
+            UniqueTogetherValidator(
+                queryset=ShoppingCart.objects.all(),
+                fields=("user", "recipe"),
+                message="Рецепт уже в корзине"
+            )
+        ]
 
 
 class FollowCreateSerializer(serializers.ModelSerializer):

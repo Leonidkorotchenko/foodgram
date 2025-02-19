@@ -35,6 +35,7 @@ from .serializers import (
     FavoriteSerializer,
     ShortRecipeSerializer,
     FollowCreateSerializer,
+    ShoppingCartSerializer,
 )
 from .permissions import AuthorOrReadOnly
 
@@ -278,15 +279,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
         user = request.user
 
         if request.method == 'POST':
-            # Проверка, что рецепт еще не в корзине
-            if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
-                raise exceptions.ValidationError(
-                    {"errors": "Рецепт уже в корзине."}
-                )
-            ShoppingCart.objects.create(user=user, recipe=recipe)
-            serializer = ShortRecipeSerializer(recipe)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+            serializer = ShoppingCartSerializer(
+                data={
+                    "user": user.id,
+                    "recipe": recipe.id
+                },
+                context={"request": request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(
+                ShortRecipeSerializer(recipe).data,
+                status=status.HTTP_201_CREATED
+            )
         cart_item = ShoppingCart.objects.filter(user=user, recipe=recipe)
         if not cart_item.exists():
             raise exceptions.ValidationError(
