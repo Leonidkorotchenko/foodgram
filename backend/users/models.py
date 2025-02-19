@@ -1,42 +1,38 @@
 from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.db import models
+
+from foodgram_backend.constants import (MAX_LENGTH_USER,
+                                        MAX_LENGTH_USER_EMAIL,)
 
 
 class User(AbstractUser):
 
     first_name = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_USER,
         verbose_name='имя',
         blank=False
     )
 
     last_name = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_USER,
         verbose_name='фамилия',
         blank=False
     )
 
-    avatar = models.ImageField(
-        upload_to='avatars/',
-        null=True,
-        blank=True,
-        verbose_name='Аватар'
-    )
+    avatar = models.ImageField()
 
     username = models.CharField(
-        max_length=150,
+        max_length=MAX_LENGTH_USER,
         verbose_name='Имя пользователя',
         unique=True,
-        validators=[RegexValidator(
-            regex=r'^[\w.@+-]+$',
-            message='В имени пользователя недопустимый символ'
-        )],
+        validators=[UnicodeUsernameValidator()],
     )
 
     email = models.EmailField(
-        max_length=254,
+        max_length=MAX_LENGTH_USER_EMAIL,
         verbose_name='email',
         unique=True
     )

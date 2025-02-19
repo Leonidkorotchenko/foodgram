@@ -15,7 +15,7 @@ from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from users.models import User, Follow
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .models import (
     Tag,
     Recipe,
@@ -34,6 +34,7 @@ from .serializers import (
     RecipeWriteSerializer,
     FavoriteSerializer,
     ShortRecipeSerializer,
+    FollowCreateSerializer,
 )
 from .permissions import AuthorOrReadOnly
 
@@ -97,29 +98,30 @@ class UserViewSet(UserViewSet):
         author = get_object_or_404(User, id=id)
 
         if request.method == "POST":
-            if user == author:
-                return Response(
-                    {"errors": "Нельзя подписаться на себя"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            if Follow.objects.filter(user=user, author=author).exists():
-                return Response(
-                    {"errors": "Вы уже подписаны"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            Follow.objects.create(user=user, author=author)
-            serializer = FollowSerializer(author, context={"request": request})
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer = FollowCreateSerializer(
+                data={'user': user.id, 'author': author.id},
+                context={'request': request}
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            
+            author_serializer = FollowSerializer(
+                author, 
+                context={"request": request}
+            )
+            return Response(
+                author_serializer.data, 
+                status=status.HTTP_201_CREATED
+            )
 
-        elif request.method == "DELETE":
-            subscription = Follow.objects.filter(user=user, author=author)
-            if not subscription.exists():
-                return Response(
-                    {"errors": "Подписка не найдена"},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            subscription.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        subscription = Follow.objects.filter(user=user, author=author)
+        if not subscription.exists():
+            return Response(
+                {"errors": "Подписка не найдена"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        subscription.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         methods=["GET"],
@@ -177,6 +179,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
+    filterset_class = IngredientFilter
     pagination_class = None
 
     def get_queryset(self):
@@ -193,16 +196,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeReadSerializer
     filterset_class = RecipeFilter
     pagination_class = NumberPagination
+    http_method_names = ['get',
+                         'post',
+                         'put',
+                         'patch',
+                         'delete',
+                         'head',
+                         'options']
 
     def get_queryset(self):
         queryset = super().get_queryset()
         user = self.request.user
         params = self.request.query_params
 
-        if params.get('is_favorited') == '1' and user.is_authenticated:
+        if params.get('is_favorited') and user.is_authenticated:
             queryset = queryset.filter(in_favorites__user=user)
 
-        if params.get('is_in_shopping_cart') == '1' and user.is_authenticated:
+        if params.get('is_in_shopping_cart') and user.is_authenticated:
             queryset = queryset.filter(in_shopping_carts__user=user)
 
         tags = params.getlist('tags')
@@ -216,7 +226,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.request.method in ('POST', 'PUT', 'PATCH'):
+        if self.request.method in ['POST', 'PUT', 'PATCH']:
             return RecipeWriteSerializer
         if self.request.method in SAFE_METHODS:
             return RecipeReadSerializer
@@ -250,15 +260,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        if request.method == "DELETE":
-            is_favorited = user.favorites.filter(recipe=recipe)
-            if is_favorited.exists():
-                is_favorited.delete()
-                return Response(status=status.HTTP_204_NO_CONTENT)
-            return Response(
-                data={"errors": "Этого рецепта нет в избранном."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        deleted_count, _ = user.favorites.filter(recipe=recipe).delete()
+        if deleted_count > 0:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(
+            data={"errors": "Этого рецепта нет в избранном."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     @action(
         methods=['POST', 'DELETE'],
@@ -279,14 +287,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = ShortRecipeSerializer(recipe)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        elif request.method == 'DELETE':
-            cart_item = ShoppingCart.objects.filter(user=user, recipe=recipe)
-            if not cart_item.exists():
-                raise exceptions.ValidationError(
-                    {"errors": "Рецепта нет в корзине."}
-                )
-            cart_item.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        cart_item = ShoppingCart.objects.filter(user=user, recipe=recipe)
+        if not cart_item.exists():
+            raise exceptions.ValidationError(
+                {"errors": "Рецепта нет в корзине."}
+            )
+        cart_item.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             methods=['GET'],

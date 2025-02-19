@@ -3,7 +3,10 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from users.models import User
-from foodgram_backend.constants import INGREDIENT_MIN_AMOUNT_ERROR
+from foodgram_backend.constants import (INGREDIENT_MIN_AMOUNT_ERROR,
+                                        MAX_LENGTH_TAGINGREDIENT,
+                                        MAX_LENGTH_RECIPE,
+                                        MAX_LENGTH_TAG,)
 
 
 class TagIngredientRecipe(models.Model):
@@ -11,7 +14,7 @@ class TagIngredientRecipe(models.Model):
     name = models.CharField(
         verbose_name='Название',
         unique=True,
-        max_length=200,
+        max_length=MAX_LENGTH_TAGINGREDIENT,
     )
 
     class Meta:
@@ -24,12 +27,12 @@ class TagIngredientRecipe(models.Model):
 class Tag(models.Model):
     name = models.CharField(
         verbose_name="Название тега",
-        max_length=32,
+        max_length=MAX_LENGTH_TAG,
         unique=True,
     )
     slug = models.SlugField(
         verbose_name="Слаг тега",
-        max_length=32,
+        max_length=MAX_LENGTH_TAG,
         unique=True,
     )
 
@@ -46,7 +49,7 @@ class Ingredient(TagIngredientRecipe):
 
     measurement_unit = models.CharField(
         verbose_name="Единица измерения",
-        max_length=200,
+        max_length=MAX_LENGTH_TAGINGREDIENT,
     )
 
     class Meta(TagIngredientRecipe.Meta):
@@ -72,7 +75,7 @@ class Recipe(models.Model):
     )
     name = models.CharField(
         verbose_name='название рецепта',
-        max_length=64
+        max_length=MAX_LENGTH_RECIPE
     )
     image = models.ImageField(
         verbose_name='Изображение',
@@ -166,7 +169,48 @@ class IngredientInRecipe(models.Model):
         )
 
 
-class ShoppingCart(models.Model):
+class FavoriteAndShoppingCartModel(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        verbose_name='Пользователь',
+    )
+
+    recipe = models.ForeignKey(
+        'Recipe',
+        on_delete=models.CASCADE,
+        verbose_name='Рецепт',
+    )
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return f'{self.user} - {self.recipe}'
+
+
+class Favorites(FavoriteAndShoppingCartModel):
+
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name="in_favorites",
+        verbose_name="Рецепт",
+    )
+
+    class Meta:
+        default_related_name = "favorites"
+        verbose_name = "Избранное"
+        constraints = [  # Добавить ограничение уникальности
+            models.UniqueConstraint(
+                fields=['user', 'recipe'],
+                name='unique_favorite'
+            )
+        ]
+
+
+class ShoppingCart(FavoriteAndShoppingCartModel):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -193,53 +237,3 @@ class ShoppingCart(models.Model):
 
     def __str__(self):
         return f'Рецепт {self.recipe} в списке покупок у {self.user}'
-
-
-class FavoriteAndShoppingCartModel(models.Model):
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        null=True,
-        verbose_name='Пользователь',
-    )
-
-    recipe = models.ForeignKey(
-        'Recipe',
-        on_delete=models.CASCADE,
-        verbose_name='Рецепт',
-    )
-
-    class Meta:
-        abstract = True
-
-    def __str__(self):
-        return f'{self.user} - {self.recipe}'
-
-
-class Favorites(FavoriteAndShoppingCartModel):
-
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name="favorites",
-        verbose_name="Пользователь",
-    )
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name="in_favorites",
-        verbose_name="Рецепт",
-    )
-    pub_date = models.DateTimeField(
-        "Дата добавления",
-        auto_now_add=True,
-    )
-
-    class Meta:
-        verbose_name = "Избранное"
-        constraints = [  # Добавить ограничение уникальности
-            models.UniqueConstraint(
-                fields=['user', 'recipe'],
-                name='unique_favorite'
-            )
-        ]

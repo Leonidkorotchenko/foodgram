@@ -6,6 +6,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers, exceptions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.validators import UniqueTogetherValidator
+from rest_framework.response import Response
 from users.models import User, Follow
 from .models import (
     Recipe,
@@ -66,6 +67,26 @@ class UserSerializer(serializers.ModelSerializer):
         """Создает нового пользователя."""
         user = User.objects.create_user(**validated_data)
         return user
+
+
+class FollowCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Follow
+        fields = ('user', 'author')
+        validators = [
+            UniqueTogetherValidator(
+                queryset=Follow.objects.all(),
+                fields=('user', 'author'),
+                message="Вы уже подписаны на этого пользователя"
+            )
+        ]
+
+    def validate(self, data):
+        if data['user'] == data['author']:
+            raise serializers.ValidationError(
+                {"errors": "Нельзя подписаться на себя"}
+            )
+        return data
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -272,15 +293,12 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def add_ingredients(self, ingredients, recipe):
         """Добавляет ингредиенты к рецепту."""
-        ingredient_objects = [
-            IngredientInRecipe(
-                recipe=recipe,
-                ingredient_id=ingredient["id"].id,
-                amount=ingredient["amount"],
-            )
-            for ingredient in ingredients
-        ]
-        IngredientInRecipe.objects.bulk_create(ingredient_objects)
+
+        IngredientInRecipe.objects.bulk_create(IngredientInRecipe(
+            recipe=recipe,
+            ingredient_id=ingredient["id"].id,
+            amount=ingredient["amount"],)
+            for ingredient in ingredients)
 
     def validate_ingredients(self, value):
         if len(value) < 1:
@@ -288,15 +306,13 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 "Добавьте хотя бы один ингредиент"
             )
 
-        ingredients = []
+        ingredient_ids = [item['id'].id for item in value]
+        if len(ingredient_ids) != len(set(ingredient_ids)):
+            raise serializers.ValidationError(
+                "Ингредиенты должны быть уникальными"
+            )
+            
         for item in value:
-            ingredient_id = item['id']
-            if ingredient_id in ingredients:
-                raise serializers.ValidationError(
-                    "Ингредиенты должны быть уникальными"
-                )
-            ingredients.append(ingredient_id)
-
             if item['amount'] < 1:
                 raise serializers.ValidationError(
                     "Количество должно быть не менее 1"
