@@ -6,7 +6,9 @@ from users.models import User
 from foodgram_backend.constants import (INGREDIENT_MIN_AMOUNT_ERROR,
                                         MAX_LENGTH_TAGINGREDIENT,
                                         MAX_LENGTH_RECIPE,
-                                        MAX_LENGTH_TAG,)
+                                        MAX_LENGTH_TAG,
+                                        MAX_COOKING_TIME,
+                                        MIN_COOKING_TIME)
 
 
 class TagIngredientRecipe(models.Model):
@@ -101,8 +103,8 @@ class Recipe(models.Model):
     cooking_time = models.PositiveIntegerField(
         verbose_name="Время приготовления",
         validators=[
-            MinValueValidator(1),
-            MaxValueValidator(3200)
+            MinValueValidator(MIN_COOKING_TIME),
+            MaxValueValidator(MAX_COOKING_TIME)
         ],
     )
     pub_date = models.DateTimeField(
@@ -153,7 +155,7 @@ class IngredientInRecipe(models.Model):
     )
 
     class Meta:
-        ordering = ('-id',)
+        ordering = ('-ingredient',)
         verbose_name = 'Количество ингредиента'
         constraints = [
             models.UniqueConstraint(

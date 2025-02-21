@@ -21,7 +21,11 @@ class User(AbstractUser):
         blank=False
     )
 
-    avatar = models.ImageField()
+    avatar = models.ImageField(
+        default='',
+        upload_to='avatars/',
+        blank=True,
+        verbose_name='Аватар')
 
     username = models.CharField(
         max_length=MAX_LENGTH_USER,

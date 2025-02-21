@@ -20,16 +20,14 @@ class AdminUser(UserAdmin):
         )
 
     # Метод для отображения подписчиков
+    @admin.display(description="subscribers_count")
     def subscribers_count(self, obj):
         return obj._subscribers_count
-    subscribers_count.short_description = "Подписчики"
-    subscribers_count.admin_order_field = '_subscribers_count'
 
     # Метод для отображения рецептов
+    @admin.display(description="recipes_count")
     def recipes_count(self, obj):
         return obj._recipes_count
-    recipes_count.short_description = "Рецепты"
-    recipes_count.admin_order_field = '_recipes_count'
 
 
 @admin.register(Follow)
