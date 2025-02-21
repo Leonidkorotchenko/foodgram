@@ -219,9 +219,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
     cooking_time = serializers.IntegerField(validators=[
-            MinValueValidator(MIN_COOKING_TIME),
-            MaxValueValidator(MAX_COOKING_TIME)
-        ])
+        MinValueValidator(MIN_COOKING_TIME),
+        MaxValueValidator(MAX_COOKING_TIME)])
 
     class Meta:
         model = Recipe
@@ -237,12 +236,12 @@ class RecipeReadSerializer(serializers.ModelSerializer):
                   'text')
         read_only_fields = fields
 
-    def get_ingredients(self, obj): 
-        return obj.ingredient_list.values( 
-            'ingredient__id', 
-            'ingredient__name', 
-            'ingredient__measurement_unit', 
-            'amount' 
+    def get_ingredients(self, obj):
+        return obj.ingredient_list.values(
+            'ingredient__id',
+            'ingredient__name',
+            'ingredient__measurement_unit',
+            'amount'
         )
 
     def to_representation(self, instance):
@@ -400,7 +399,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def update_ingredients(self, recipe, ingredients_data):
         """Обновление ингредиентов с сохранением существующих"""
-        current = {str(item.ingredient.id): item for item in recipe.ingredient_list.all()}
+        current = {str(item.ingredient.id):
+            item for item in recipe.ingredient_list.all()}
 
         new_ids = set()
         for ing in ingredients_data:
@@ -412,8 +412,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
         recipe.ingredient_list.exclude(ingredient__id__in=new_ids).delete()
 
-        new_ingredients = [ing for ing in ingredients_data 
-                          if str(ing['id'].id) not in current]
+        new_ingredients = [ing for ing in ingredients_data
+                           if str(ing['id'].id) not in current]
         if new_ingredients:
             self.add_ingredients(new_ingredients, recipe)
 
