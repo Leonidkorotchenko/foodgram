@@ -236,7 +236,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_ingredients(self, obj):
-        return obj.ingredient_list.values(
+        return obj.recipe_list.values(
             'ingredient__id',
             'ingredient__name',
             'ingredient__measurement_unit',
@@ -391,7 +391,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             instance.tags.set(tags_data)
 
         if ingredients_data is not None:
-            instance.ingredient_list.all().delete()
+            instance.recipe_list.all().delete()
             self.add_ingredients(ingredients_data, instance)
 
         return instance
@@ -399,7 +399,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update_ingredients(self, recipe, ingredients_data):
         """Обновление ингредиентов с сохранением существующих"""
         current = {str(item.ingredient.id):
-                   item for item in recipe.ingredient_list.all()}
+            item for item in recipe.ingredient_list.all()}
 
         new_ids = set()
         for ing in ingredients_data:

@@ -15,10 +15,9 @@ class IngredientFilter(FilterSet):
 class RecipeFilter(FilterSet):
     author = filters.ModelChoiceFilter(queryset=User.objects.all())
     tags = filters.ModelMultipleChoiceFilter(
+        queryset=Tag.objects.all(),
         field_name='tags__slug',
         to_field_name='slug',
-        queryset=Tag.objects.all(),
-        method='filter_tags'
     )
     is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(method='filter_shopping_cart')
@@ -29,13 +28,10 @@ class RecipeFilter(FilterSet):
 
     def filter_is_favorited(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(favorites__user=self.request.user)
+            return queryset.filter(in_favorites__user=self.request.user)
         return queryset
 
     def filter_shopping_cart(self, queryset, name, value):
         if value and self.request.user.is_authenticated:
-            return queryset.filter(shoppingcart__user=self.request.user)
+            return queryset.filter(in_shopping_carts__user=self.request.user)
         return queryset
-
-    def filter_tags(self, queryset, name, value):
-        return queryset.filter(tags__slug__in=value)

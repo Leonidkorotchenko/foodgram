@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models import Sum, Exists, OuterRef, Prefetch
+from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404, HttpResponse
 from djoser.views import UserViewSet
 from django.http import JsonResponse
@@ -8,7 +9,8 @@ from rest_framework import (viewsets,
                             permissions,
                             status,
                             exceptions,
-                            serializers)
+                            serializers,
+                            filters)
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, IsAuthenticated
@@ -181,18 +183,17 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (permissions.AllowAny,)
+    filter_backends = (DjangoFilterBackend, filters.SearchFilter)
     filterset_class = IngredientFilter
+    search_fields = ('name',)
     pagination_class = None
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return self.filter_queryset(queryset)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     permission_classes = (AuthorOrReadOnly,)
     serializer_class = RecipeReadSerializer
+    filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
     pagination_class = NumberPagination
     http_method_names = ['get',
@@ -202,10 +203,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
                          'delete',
                          'head',
                          'options']
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return self.filter_queryset(queryset)
 
     def get_serializer_class(self):
         if self.request.method in ['POST', 'PUT', 'PATCH']:
