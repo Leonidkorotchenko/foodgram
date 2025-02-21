@@ -4,7 +4,6 @@ from django.db import transaction
 from django.core.files.base import ContentFile
 from django.core.validators import MaxValueValidator, MinValueValidator
 from rest_framework import serializers, exceptions, status
-from rest_framework.exceptions import PermissionDenied
 from rest_framework.validators import UniqueTogetherValidator
 from users.models import User, Follow
 from .models import (
@@ -400,7 +399,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update_ingredients(self, recipe, ingredients_data):
         """Обновление ингредиентов с сохранением существующих"""
         current = {str(item.ingredient.id):
-            item for item in recipe.ingredient_list.all()}
+                   item for item in recipe.ingredient_list.all()}
 
         new_ids = set()
         for ing in ingredients_data:
