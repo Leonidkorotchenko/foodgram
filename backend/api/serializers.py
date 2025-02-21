@@ -399,7 +399,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def update_ingredients(self, recipe, ingredients_data):
         """Обновление ингредиентов с сохранением существующих"""
         current = {str(item.ingredient.id):
-            item for item in recipe.ingredient_list.all()}
+                   item for item in recipe.ingredient_list.all()}
 
         new_ids = set()
         for ing in ingredients_data:
